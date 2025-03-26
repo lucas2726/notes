@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -34,18 +35,60 @@ class AuthController extends Controller {
         $username = $request->input('text_username');
         $password = $request->input('text_password');
 
-        // teste database connection 
-        try {
-            DB::connection()->getPdo();
-            echo "okkkkkkkkkk"; 
-        } catch (\PDOException $e) {
-            echo "jsjsjs" . $e->getMessage();
+        // check if user exists 
+        $user = User::where('username', $username)
+        ->where('deleted_at', NULL)
+        ->first();
+        
+        if(!$user) {
+            return redirect()
+            ->back()
+            ->withInput()
+            ->with('loginError', 'Username ou password incorretos.');
+
+            /*
+            redirect()
+            Esse método cria uma instância de redirecionamento. Ele permite que você redirecione o usuário para uma URL específica, rota nomeada ou a página anterior.
+
+            2. back()
+            Esse método indica que o redirecionamento deve ser feito para a página anterior, geralmente a mesma página onde o usuário estava antes da requisição. Ele utiliza o cabeçalho Referer da requisição para determinar de onde veio o usuário.
+
+            3. withInput()
+            Esse método mantém os dados enviados na requisição anterior, permitindo que sejam reutilizados na próxima requisição. Isso é muito útil para preencher automaticamente campos de formulários quando há um erro de validação.
+
+            4. with()
+            Esse método adiciona dados à sessão flash, permitindo que você envie mensagens ou informações para a próxima requisição. Normalmente, ele é usado para enviar mensagens de erro ou sucesso.
+            */
         }
-        echo "jhhhh";
+
+        if(!password_verify($password, $user->password)) {
+            return redirect()
+            ->back()
+            ->withInput()
+            ->with('loginError', 'Username ou password incorretos.');
+        }
+
+        $user->last_login = date('Y-m-d H:i:s');
+        $user->save();
+
+        session([
+            'user' => [
+                'id' => $user->id,
+                'username' => $user->username
+            ]
+            ]);
+
+        /*
+        sessão (session()) armazena informações temporárias entre requisições, como dados de usuário logado, mensagens flash, etc. 
+        */
+
+        //redirect to home
+        return redirect()->to("/");
     }
 
     public function logout() {
-        echo "logout";
+        session()->forget('user');
+        return redirect()->to('/login');
     }
 
 }
