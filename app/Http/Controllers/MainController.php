@@ -63,6 +63,10 @@ class MainController extends Controller {
     public function editNote($id) {
         $id = Operations::dcryptId($id);
 
+        if ($id === null) {
+            return redirect()->route('home');
+        }
+
         // load note
         $note = Note::find($id);
 
@@ -99,6 +103,10 @@ class MainController extends Controller {
         // decrypt note_id
         $id = Operations::dcryptId($request->note_id);
 
+        if ($id === null) {
+            return redirect()->route('home');
+        }
+
         // load note
         $note = Note::find($id);
 
@@ -114,6 +122,10 @@ class MainController extends Controller {
     public function deleteNote($id) {
         $id = Operations::dcryptId($id);
 
+        if ($id === null) {
+            return redirect()->route('home');
+        }
+
         // load note
         $note = Note::find($id);
 
@@ -125,6 +137,10 @@ class MainController extends Controller {
         
         // check if $id is encrypted
         $id = Operations::dcryptId($id);
+
+        if ($id === null) {
+            return redirect()->route('home');
+        }
 
         // load note
         $note = Note::find($id);
